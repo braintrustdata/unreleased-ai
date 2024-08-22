@@ -27,7 +27,7 @@ Eval(PROJECT_NAME, {
   data: () => [sampleData],
   task: async (input) =>
     await invoke({
-      project_name: PROJECT_NAME,
+      projectName: PROJECT_NAME,
       slug: PROMPT_SLUG,
       input,
       schema: z.string(),

@@ -36,7 +36,7 @@ const handleRequest = wrapTraced(async function handleRequest(url: string) {
   const { commits, since } = await getCommits(owner, repo);
 
   return await invoke({
-    project_name: PROJECT_NAME,
+    projectName: PROJECT_NAME,
     slug: PROMPT_SLUG,
     input: {
       url,
