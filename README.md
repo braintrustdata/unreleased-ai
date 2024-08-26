@@ -40,7 +40,7 @@ will start the Next.js app on `localhost:3000`.
 pnpm eval
 ```
 
-This will run the evals defined in [changelog.ts](./eval/changelog.ts) and log the results to Braintrust.
+This will run the evals defined in [changelog.eval.ts](./eval/changelog.eval.ts) and log the results to Braintrust.
 
 ## Developing
 
