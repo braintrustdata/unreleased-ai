@@ -25,15 +25,26 @@ type CommitsResponse = GetResponseTypeFromEndpointMethod<
 
 export async function POST(req: Request) {
   const { prompt: url } = await req.json();
-  const changelog = await handleRequest(url);
-  return BraintrustAdapter.toAIStreamResponse(changelog);
+  const result = await handleRequest(url);
+  
+  if (result instanceof Response) {
+    return result;
+  }
+  
+  return BraintrustAdapter.toAIStreamResponse(result);
 }
 
 const handleRequest = wrapTraced(async function handleRequest(url: string) {
   // Parse the URL to get the owner and repo name
   const [owner, repo] = url.split("github.com/")[1].split("/");
 
-  const { commits, since } = await getCommits(owner, repo);
+  const result = await getCommits(owner, repo);
+
+  if (result instanceof Response) {
+    return result; // Return the error response
+  }
+
+  const { commits, since } = result;
 
   return await invoke({
     projectName: PROJECT_NAME,
@@ -49,26 +60,41 @@ const handleRequest = wrapTraced(async function handleRequest(url: string) {
 
 const getCommits = wrapTraced(async function getCommits(
   owner: string,
-  repo: string,
-) {
-  // Fetch the latest release from the GitHub API
-  const releaseResponse = await octokit.rest.repos.getLatestRelease({
-    owner,
-    repo,
-  });
-  const release = releaseResponse.data;
-  const since = release.published_at;
+  repo: string
+): Promise<Response | { commits: CommitsResponse['data']; since: string | null }> {
+  try {
+    // Fetch the latest release from the GitHub API
+    const releaseResponse = await octokit.rest.repos.getLatestRelease({
+      owner,
+      repo,
+    });
 
-  // Then fetch the corresponding commits
-  const commitResponse: CommitsResponse = await octokit.rest.repos.listCommits({
-    owner,
-    repo,
-    since: since ?? undefined,
-    per_page: 50,
-  });
+    // Check if there are no releases
+    if (!releaseResponse || !releaseResponse.data) {
+      return new Response("This repository doesn't have any releases yet.", { status: 404 });
+    }
 
-  const commits = commitResponse.data;
-  return { commits, since };
+    const release = releaseResponse.data;
+    const since = release.published_at;
+
+    // Then fetch the corresponding commits
+    const commitResponse: CommitsResponse = await octokit.rest.repos.listCommits({
+      owner,
+      repo,
+      since: since ?? undefined,
+      per_page: 50,
+    });
+
+    const commits = commitResponse.data;
+    return { commits, since };
+
+  } catch (error) {
+    if (error instanceof Error && 'status' in error && error.status === 404) {
+      return new Response("This repository doesn't have any releases yet.", { status: 404 });
+    }
+    // Re-throw other errors
+    throw error;
+  }
 });
 
 // Allow streaming responses up to 30 seconds

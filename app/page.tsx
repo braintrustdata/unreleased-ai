@@ -7,6 +7,7 @@ import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { useCompletion } from "ai/react";
 import { useEffect, useState } from "react";
 import Markdown from "react-markdown";
+import { AxiosError } from 'axios';
 
 export default function Page() {
   const {
@@ -19,6 +20,11 @@ export default function Page() {
     isLoading,
   } = useCompletion({
     api: "/generate",
+    onError: (err: Error | AxiosError) => {
+      if ('response' in err && err.response?.status === 404) {
+        err.message = err.response.data as string;
+      }
+    },
   });
 
   const [sampleRepoUrl, setSampleRepoUrl] = useState<string | null>(null);
