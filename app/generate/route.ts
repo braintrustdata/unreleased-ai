@@ -32,6 +32,7 @@ export async function POST(req: Request) {
 const handleRequest = wrapTraced(async function handleRequest(url: string) {
   // Parse the URL to get the owner and repo name
   const [owner, repo] = url.split("github.com/")[1].split("/");
+  
   const { commits, since } = await getCommits(owner, repo);
 
   return await invoke({
@@ -39,7 +40,7 @@ const handleRequest = wrapTraced(async function handleRequest(url: string) {
     slug: PROMPT_SLUG,
     input: {
       url,
-      since: since,
+      since,
       commits: commits.map(({ commit }) => `${commit.message}\n\n`),
     },
     stream: true,
