@@ -32,7 +32,7 @@ export async function POST(req: Request) {
 const handleRequest = wrapTraced(async function handleRequest(url: string) {
   // Parse the URL to get the owner and repo name
   const [owner, repo] = url.split("github.com/")[1].split("/");
-
+  
   const { commits, since } = await getCommits(owner, repo);
 
   return await invoke({
@@ -49,25 +49,37 @@ const handleRequest = wrapTraced(async function handleRequest(url: string) {
 
 const getCommits = wrapTraced(async function getCommits(
   owner: string,
-  repo: string,
-) {
-  // Fetch the latest release from the GitHub API
-  const releaseResponse = await octokit.rest.repos.getLatestRelease({
-    owner,
-    repo,
-  });
-  const release = releaseResponse.data;
-  const since = release.published_at;
+  repo: string
+): Promise<{ commits: CommitsResponse['data']; since: string | null }> {
+  let since: string | null = null;
 
-  // Then fetch the corresponding commits
+  try {
+    // Attempt to fetch the latest release from the GitHub API
+    const releaseResponse = await octokit.rest.repos.getLatestRelease({ owner, repo });
+    since = releaseResponse.data.published_at;
+  } catch (error) {
+    // If it's not a 404 error, rethrow it
+    if (!(error instanceof Error && 'status' in error && error.status === 404)) {
+      throw error;
+    }
+    // If it's a 404, we'll just continue with since as null
+  }
+
+  // Fetch the latest commits (up to 20)
   const commitResponse: CommitsResponse = await octokit.rest.repos.listCommits({
     owner,
     repo,
     since: since ?? undefined,
-    per_page: 50,
+    per_page: 20,
   });
 
   const commits = commitResponse.data;
+
+  // If there was no release, set 'since' to the date of the oldest commit
+  if (!since && commits.length > 0) {
+    since = commits[commits.length - 1].commit.author?.date ?? null;
+  }
+
   return { commits, since };
 });
 
