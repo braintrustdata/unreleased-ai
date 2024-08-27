@@ -21,9 +21,7 @@ export default function Page() {
   } = useCompletion({
     api: "/generate",
     onError: (err: Error | AxiosError) => {
-      if ('response' in err && err.response?.status === 404) {
-        err.message = err.response.data as string;
-      }
+      console.error("An error occurred:", err);
     },
   });
 
