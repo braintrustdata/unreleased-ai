@@ -4,13 +4,6 @@ import { GetResponseTypeFromEndpointMethod } from "@octokit/types";
 import { Octokit } from "@octokit/rest";
 import { PROJECT_NAME, PROMPT_SLUG } from "@/lib/constants";
 
-class NoReleasesError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "NoReleasesError";
-  }
-}
-
 const logger = initLogger({
   projectName: PROJECT_NAME,
   apiKey: process.env.BRAINTRUST_API_KEY,

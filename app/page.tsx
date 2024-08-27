@@ -20,9 +20,6 @@ export default function Page() {
     isLoading,
   } = useCompletion({
     api: "/generate",
-    onError: (err: Error | AxiosError) => {
-      console.error("An error occurred:", err);
-    },
   });
 
   const [sampleRepoUrl, setSampleRepoUrl] = useState<string | null>(null);
