@@ -51,12 +51,11 @@ const getCommits = wrapTraced(async function getCommits(
   owner: string,
   repo: string
 ): Promise<{ commits: CommitsResponse['data']; since: string | null }> {
-  let releaseResponse;
   let since: string | null = null;
 
   try {
     // Attempt to fetch the latest release from the GitHub API
-    releaseResponse = await octokit.rest.repos.getLatestRelease({ owner, repo });
+    const releaseResponse = await octokit.rest.repos.getLatestRelease({ owner, repo });
     since = releaseResponse.data.published_at;
   } catch (error) {
     // If it's not a 404 error, rethrow it
