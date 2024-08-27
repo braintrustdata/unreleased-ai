@@ -52,8 +52,6 @@ const handleRequest = wrapTraced(async function handleRequest(url: string) {
     since: since ?? "the beginning",
     commits: commits.map(({ commit }) => `${commit.message}\n\n`),
   };
-  console.log("input", input);
-  console.log("commits", JSON.stringify(commits, null, 2));
 
   return await invoke({
     projectName: PROJECT_NAME,
