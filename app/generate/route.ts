@@ -25,33 +25,21 @@ type CommitsResponse = GetResponseTypeFromEndpointMethod<
 
 export async function POST(req: Request) {
   const { prompt: url } = await req.json();
-  const result = await handleRequest(url);
-  
-  if (result instanceof Response) {
-    return result;
-  }
-  
-  return BraintrustAdapter.toAIStreamResponse(result);
+  const changelog = await handleRequest(url);
+  return BraintrustAdapter.toAIStreamResponse(changelog);
 }
 
 const handleRequest = wrapTraced(async function handleRequest(url: string) {
   // Parse the URL to get the owner and repo name
   const [owner, repo] = url.split("github.com/")[1].split("/");
-
-  const result = await getCommits(owner, repo);
-  const { commits, since } = result;
-  const input = {
-    url,
-    since: since ?? "the beginning",
-    commits: commits.map(({ commit }) => `${commit.message}\n\n`),
-  };
+  const { commits, since } = await getCommits(owner, repo);
 
   return await invoke({
     projectName: PROJECT_NAME,
     slug: PROMPT_SLUG,
     input: {
       url,
-      since: since ?? "the beginning",
+      since: since,
       commits: commits.map(({ commit }) => `${commit.message}\n\n`),
     },
     stream: true,

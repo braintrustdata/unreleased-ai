@@ -7,7 +7,6 @@ import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { useCompletion } from "ai/react";
 import { useEffect, useState } from "react";
 import Markdown from "react-markdown";
-import { AxiosError } from 'axios';
 
 export default function Page() {
   const {
