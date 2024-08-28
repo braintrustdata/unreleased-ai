@@ -28,6 +28,7 @@ const comprehensivessScorer = ({
 
 Eval(PROJECT_NAME, {
   data: initDataset({project: PROJECT_NAME, dataset: 'eval dataset'}),
+  // data: () => [sampleData], // Uncomment to use sample data
   task: async (input) =>
     await invoke({
       projectName: PROJECT_NAME,
