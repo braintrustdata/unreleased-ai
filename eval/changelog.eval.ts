@@ -1,4 +1,4 @@
-import { invoke, Eval } from "braintrust";
+import { invoke, Eval, initDataset } from "braintrust";
 import { sampleData } from "./sampleData";
 import { comprehensiveness } from "./comprehensiveness-scorer";
 import { z } from "zod";
@@ -16,15 +16,18 @@ const comprehensivessScorer = ({
 }: {
   input: Input;
   output: string;
-}) => {
-  return comprehensiveness({
-    input: input.commits.map(({ message }) => message).join("\n"),
-    output,
-  });
+}) => { 
+  if (!input.commits || input.commits.length === 0) {
+    return null;
+  }
+    return comprehensiveness({
+      input: input.commits.map(({ message }) => message).join("\n"),
+      output,
+    });
 };
 
 Eval(PROJECT_NAME, {
-  data: () => [sampleData],
+  data: initDataset({project: PROJECT_NAME, dataset: 'eval dataset'}),
   task: async (input) =>
     await invoke({
       projectName: PROJECT_NAME,
